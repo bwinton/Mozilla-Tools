@@ -26,9 +26,8 @@ for change in changes:
 # Populate the file sets by file.
 fileDb = redis.Redis(db=FILE_DB)
 for key in bugDb.keys():
-  print key
   files = bugDb.smembers(key)
   for file in files:
-    print file
     for otherFile in files:
-      fileDb.zincrby(file, otherFile)
+      if otherFile != file:
+        fileDb.zincrby(file, otherFile)
