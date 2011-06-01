@@ -43,8 +43,8 @@ def main(argv=None):
   supersuckers = Counter()
   for file in changes:
     for change in changes[file]:
-      suckers.update(suckerRe.findall(change.description()))
-      supersuckers.update(supersuckerRe.findall(change.description()))
+      suckers.update(x.lower() for x in suckerRe.findall(change.description()))
+      supersuckers.update(x.lower() for x in supersuckerRe.findall(change.description()))
 
   print "Potential reviewers:"
   for (reviewer, count) in suckers.most_common(10):
