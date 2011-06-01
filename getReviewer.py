@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 from collections import Counter
-from mercurial import commands, hg, ui
+from mercurial import commands, hg, ui, url
 from optparse import OptionParser
 import re
 import sys
 
-fileRe = re.compile(r"^\+\+\+ (?:b/)?(.*)$", re.MULTILINE)
+fileRe = re.compile(r"^\+\+\+ (?:b/)?([^\s]*)", re.MULTILINE)
 suckerRe = re.compile(r"[^s-]r=([^, ]*)")
 supersuckerRe = re.compile(r"sr=([^, ]*)")
 
@@ -26,7 +26,7 @@ def main(argv=None):
     commands.diff(myui, repo, git=True)
     diff = myui.popbuffer()
   else:
-    diff = open(args[0]).read()
+    diff = url.open(myui, args[0]).read()
 
   changedFiles = fileRe.findall(diff)
   changes = {}
@@ -54,6 +54,8 @@ def main(argv=None):
   print "Potential super-reviewers:"
   for (reviewer, count) in supersuckers.most_common(10):
     print "  %s: %d" % (reviewer, count)
+  print
+
   return 0
 
 if __name__ == "__main__":
