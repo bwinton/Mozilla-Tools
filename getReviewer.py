@@ -2,14 +2,10 @@
 
 from collections import Counter
 from mercurial import commands, hg, ui
-import operator
 from optparse import OptionParser
-from os import stat
-from os.path import exists
 import re
 import sys
 
-ext = re.compile("(\.c(pp)?|\.js|\.xml)$")
 fileRe = re.compile(r"^\+\+\+ (?:b/)?(.*)$", re.MULTILINE)
 suckerRe = re.compile(r"[^s-]r=([^, ]*)")
 supersuckerRe = re.compile(r"sr=([^, ]*)")
@@ -18,11 +14,6 @@ def main(argv=None):
   if argv is None:
     argv = sys.argv
   parser = OptionParser()
-  parser.add_option("-f", "--file", dest="filename",
-                    help="write report to FILE", metavar="FILE")
-  parser.add_option("-q", "--quiet",
-                    action="store_false", dest="verbose", default=True,
-                    help="don't print status messages to stdout")
 
   (options, args) = parser.parse_args()
 
