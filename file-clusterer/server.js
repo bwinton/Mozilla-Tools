@@ -67,6 +67,7 @@ app.get("/path/*", function(req, res) {
   });
 });
 
+app.use(express.staticProvider(__dirname + '/client'));
 app.listen(8123);
 
 console.log("Server running at http://127.0.0.1:8123/");

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>ArbPL</title>
+    <script type="text/javascript">
+      var console;
+      if (!console)
+        console = {
+          log: function() {},
+          error: function() {},
+          info: function() {},
+          warn: function() {},
+      };
+      function dump(aMsgWithNewline) {
+        console.log(aMsgWithNewline.replace("\n", "", "g"));
+      }
+    </script>
+    <style type="text/css">
+      html {
+        font-family: "Lucida Grande", Verdana, sans-serif;
+        font-size: 10pt;
+      }
+      :focus { outline: none; }
+    </style>
+<script type="text/javascript" src="deps/requirejs/require.js"></script>
+  <script>
+    require(
+      {
+        baseUrl: "./",
+        packages: [
+          { name: "arbclient", location: ".", lib: "lib/arbclient" },
+          { name: "arbcommon", location: ".", lib: "lib/arbcommon" },
+          // jstut family
+          { name: "jstut", location: "deps/jtstut",
+              lib: "lib/jstut" },
+          { name: "narscribblus", location: "deps/jstut",
+              lib: "lib/narscribblus" },
+          { name: "narscribblus-plat", location: "deps/jstut",
+              lib: "lib-requirejs/narscribblus-plat" },
+          { name: "wmsy", location: "deps/wmsy", lib: "lib/wmsy" },
+        ],
+      },
+      ["deps/global-es5.js", "arbclient/app-main"],
+      function(es5, mainModule) {
+        mainModule.main();
+      }
+    );
+  </script>
+  </head>
+<body id="body">
+</body>
+</html>
