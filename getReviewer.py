@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
 from collections import Counter
-from mercurial import commands, hg, ui, url
+from mercurial import cmdutil, commands, hg, ui, url
 from optparse import OptionParser
+import os
 import re
 import sys
 
@@ -25,7 +26,7 @@ def main(argv=None):
   (options, args) = parser.parse_args()
 
   myui = ui.ui()
-  repo = hg.repository(myui, '.')
+  repo = hg.repository(myui, cmdutil.findrepo(os.getcwd()))
 
   if len(args) == 0:
     # we should use the current diff, or if that is empty, the top applied
