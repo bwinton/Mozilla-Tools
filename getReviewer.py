@@ -8,7 +8,9 @@ import re
 import sys
 
 SEARCH_DEPTH = 10000
-aliases = { 'lw': "luke" }
+aliases = { 'lw': "luke",
+            'philringnalda': "philor",
+          }
 
 fileRe = re.compile(r"^\+\+\+ (?:b/)?([^\s]*)", re.MULTILINE)
 suckerRe = re.compile(r"[^s-]r=(\w+)")
