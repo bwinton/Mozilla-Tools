@@ -15,6 +15,7 @@ aliases = { 'lw': "luke",
 fileRe = re.compile(r"^\+\+\+ (?:b/)?([^\s]*)", re.MULTILINE)
 suckerRe = re.compile(r"[^s-]r=(\w+)")
 supersuckerRe = re.compile(r"sr=(\w+)")
+uisuckerRe = re.compile(r"ui-r=(\w+)")
 
 def canon(reviewer):
   reviewer = reviewer.lower()
@@ -61,10 +62,12 @@ def main(argv=None):
 
   suckers = Counter()
   supersuckers = Counter()
+  uisuckers = Counter()
   for file in changes:
     for change in changes[file]:
       suckers.update(canon(x) for x in suckerRe.findall(change.description()))
       supersuckers.update(canon(x) for x in supersuckerRe.findall(change.description()))
+      uisuckers.update(canon(x) for x in uisuckerRe.findall(change.description()))
 
   print "Potential reviewers:"
   for (reviewer, count) in suckers.most_common(10):
@@ -73,6 +76,11 @@ def main(argv=None):
 
   print "Potential super-reviewers:"
   for (reviewer, count) in supersuckers.most_common(10):
+    print "  %s: %d" % (reviewer, count)
+  print
+
+  print "Potential ui-reviewers:"
+  for (reviewer, count) in uisuckers.most_common(10):
     print "  %s: %d" % (reviewer, count)
   print
 
