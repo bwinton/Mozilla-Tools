@@ -3,6 +3,7 @@
 from appscript import app, k
 from BeautifulSoup import BeautifulSoup
 import re
+import sys
 import urllib
 
 url = "https://bugzilla.mozilla.org/request.cgi?action=queue&requestee=bwinton@mozilla.com"
@@ -13,6 +14,9 @@ data = urllib.urlopen(url).read()
 # data = open("test.data").read()
 soup = BeautifulSoup(data)
 table = soup.find("table", "requests")
+if not table:
+  print u"Review Queue Zero?!?  Congratulations!"
+  sys.exit(0)
 trs = table.findAll("tr")
 headings = []
 requests = []
