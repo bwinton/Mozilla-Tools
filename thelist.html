@@ -1,31 +1,13 @@
 <!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
+<!-- Bootstrap -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+<link href="assets/css/bootstrap-responsive.css" rel="stylesheet">
+
 <title>The List</title>
 <style type="text/css">
-tr:nth-child(2n) {
-  background-color: #f0f0f0;
-}
-
-td {
-  padding: 1px 0.5em;
-}
-
-div#column_container {
-  display: table;
-  min-width: 100%;
-}
-div.column {
-  display: table-cell;
-  border-width: 0 1px;
-  border-style: solid;
-  padding: 0 1em;
-}
-
-h1 {
-  text-align: center;
-}
-
 a {
   color: inherit;
   text-decoration: none;
@@ -34,12 +16,18 @@ a {
 div.column tbody > tr:hover {
   text-decoration: underline;
 }
+
+#lists > div {
+  padding: 2em;
+}
+
 </style>
 <script type="application/javascript" src="http://d3js.org/d3.v3.js"></script>
 <script type="application/javascript">
 function displayBugTable(data, target, columns, labels) {
   target.text('');
   var table = target.append("table");
+  table.classed("table table-striped table-hover", true);
 
   // The header of the table
   table.append("thead").append("tr")
@@ -54,11 +42,28 @@ function displayBugTable(data, target, columns, labels) {
     .style("color", function (d) {
       if (d.severity == "blocker" || d.severity == "critical")
         return "red";
-      else if (d.severity == "enhancement")
-        return "gray";
       else
         return "black";
-    });
+    })
+    .style("cursor", "pointer")
+    .classed("error", function (d) {
+      if (d.severity == "blocker" || d.severity == "critical")
+        return true;
+      return false;
+    })
+    .classed("warning", function (d) {
+      if (d.severity == "enhancement")
+        return true;
+      return false;
+    })
+    .on("click", function(d) {
+      var url = "http://bugzilla.mozilla.org/show_bug.cgi?id=" + d.id;
+      if (d3.event.ctrlKey || d3.event.metaKey)
+        window.open(url);
+      else
+        window.location = url;
+   });
+
 
   var cells = rows.selectAll("td")
    .data(function(row) {
@@ -66,10 +71,8 @@ function displayBugTable(data, target, columns, labels) {
        return {id: row.id, value: row[column]};
      });
      }).enter().append("td")
-   .append("a").attr("href", function (d) {
-     return "http://bugzilla.mozilla.org/show_bug.cgi?id=" + d.id
-   }).text(function(d) { return d.value; });
-  
+   .text(function(d) { return d.value; });
+
   // Add total bug count
   target[0][0].previousElementSibling.textContent +=
     " (" + data.length + " bugs)";
@@ -140,10 +143,14 @@ function loadBugs() {
 </script>
 </head>
 <body onload="loadBugs()">
-<h1>The List</h1>
-<div id="column_container">
-  <div class="column"><h1>Open bugs</h1><div id="listopen">Loading...</div></div>
-  <div class="column"><h1>Fixed bugs</h1><div id="listfixed">Loading...</div></div>
+<div class="container-fluid">
+  <div class="hero-unit">
+    <h1>The List</h1>
+  </div>
+  <div class="row-fluid" id="lists">
+    <div class="span6"><h1>Open bugs</h1><div id="listopen">Loading...</div></div>
+    <div class="span6"><h1>Fixed bugs</h1><div id="listfixed">Loading...</div></div>
+  </div>
 </div>
 </body>
 </html>
