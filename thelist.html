@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<title>The List</title>
+<style type="text/css">
+tr:nth-child(2n) {
+  background-color: #f0f0f0;
+}
+
+td {
+  padding: 1px 0.5em;
+}
+
+div#column_container {
+  display: table;
+  min-width: 100%;
+}
+div.column {
+  display: table-cell;
+  border-width: 0 1px;
+  border-style: solid;
+  padding: 0 1em;
+}
+
+h1 {
+  text-align: center;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+div.column tbody > tr:hover {
+  text-decoration: underline;
+}
+</style>
+<script type="application/javascript" src="http://d3js.org/d3.v3.js"></script>
+<script type="application/javascript">
+function displayBugTable(data, target, columns, labels) {
+  target.text('');
+  var table = target.append("table");
+
+  // The header of the table
+  table.append("thead").append("tr")
+    .selectAll("th").data(labels)
+    .enter().append("th")
+    .text(function(column) { return column; });
+
+  // Add in the body data
+  var rows = table.append("tbody")
+    .selectAll("tr").data(data)
+    .enter().append("tr")
+    .style("color", function (d) {
+      if (d.severity == "blocker" || d.severity == "critical")
+        return "red";
+      else if (d.severity == "enhancement")
+        return "gray";
+      else
+        return "black";
+    });
+
+  var cells = rows.selectAll("td")
+   .data(function(row) {
+     return columns.map(function(column) {
+       return {id: row.id, value: row[column]};
+     });
+     }).enter().append("td")
+   .append("a").attr("href", function (d) {
+     return "http://bugzilla.mozilla.org/show_bug.cgi?id=" + d.id
+   }).text(function(d) { return d.value; });
+  
+  // Add total bug count
+  target[0][0].previousElementSibling.textContent +=
+    " (" + data.length + " bugs)";
+
+  return table;
+}
+
+var date_added = {
+  790912: "2012-09-21", 739563: "2012-09-21", 669136: "2012-09-21",
+  487386: "2012-09-21", 701533: "2012-09-21", 750569: "2012-09-21",
+  674742: "2012-09-21", 710056: "2012-09-21", 790234: "2012-09-21",
+  570914: "2012-09-21", 771232: "2012-09-21", 281417: "2012-09-21",
+  750666: "2012-09-21", 679626: "2012-09-21", 66806: "2012-09-21",
+  511741: "2012-09-21", 782738: "2012-09-21", 673438: "2012-09-21",
+  723888: "2012-09-21", 750630: "2012-09-21", 573496: "2012-09-21",
+  180997: "2012-09-21", 343851: "2012-09-21", 563677: "2012-09-21",
+  522222: "2012-09-21", 722094: "2012-09-21", 583365: "2012-09-21",
+  640371: "2012-09-21", 87653: "2012-09-21", 633093: "2012-09-21",
+  328714: "2012-09-21", 790229: "2012-09-21", 349547: "2012-09-21",
+  387869: "2012-09-21", 515400: "2012-09-21", 539468: "2012-09-21",
+  558931: "2012-09-21", 739311: "2012-09-21", 772796: "2012-09-21",
+  471492: "2012-12-20", 794303: "2012-12-20", 815012: "2012-12-20"
+};
+
+function fixBugData(bug) {
+  bug["date_added"] = date_added[bug.id];
+  bug["last_change_time"] = bug.last_change_time.substring(0, 10);
+}
+
+function fieldDateCompare(a, b, field) {
+  return a[field].localeCompare(b[field]);
+}
+
+function loadBugs() {
+  var apiURL = "https://api-dev.bugzilla.mozilla.org/1.2/bug" +
+    "?id=" + Object.keys(date_added).join(",") +
+    "&include_fields=id,last_change_time,resolution,summary,severity";
+  d3.json(apiURL)
+    .on("error", function (error) {
+      d3.selectAll("div.column > div").text("Error loading bugs, see console.");
+    }).on("load", function (data) {
+      var bugs = data.bugs;
+      bugs.forEach(fixBugData);
+      bugs.sort(function (a, b) { return a.id - b.id; });
+
+      // Grab the fixed and unfixed bugs
+      var categories = d3.nest()
+        .key(function (d) { return d.resolution == "" })
+        .sortKeys(d3.ascending())
+        .entries(bugs);
+      var fixed = categories[1].values, unfixed = categories[0].values;
+      fixed.sort(function (a, b) {
+        return -fieldDateCompare(a, b, "last_change_time");
+      });
+      unfixed.sort(function (a, b) {
+        return -fieldDateCompare(a, b, "date_added");
+      });
+
+      // Update the UI
+      displayBugTable(unfixed, d3.select("#listopen"),
+        ["id", "summary", "severity", "date_added", "last_change_time"],
+        ["Bug #", "Summary", "Severity", "Added", "Last Touched"]);
+      displayBugTable(fixed, d3.select("#listfixed"),
+        ["id", "summary", "severity", "date_added", "last_change_time"],
+        ["Bug #", "Summary", "Severity", "Added", "Last Touched"]);
+    }).get();
+}
+</script>
+</head>
+<body onload="loadBugs()">
+<h1>The List</h1>
+<div id="column_container">
+  <div class="column"><h1>Open bugs</h1><div id="listopen">Loading...</div></div>
+  <div class="column"><h1>Fixed bugs</h1><div id="listfixed">Loading...</div></div>
+</div>
+</body>
+</html>
