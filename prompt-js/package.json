@@ -1,0 +1,16 @@
+{
+  "name": "prompt",
+  "version": "1.0.0",
+  "description": "A prompt for me.",
+  "main": "prompt.js",
+  "dependencies": {
+    "clockmoji": "1.0.2",
+    "moonmoji": "0.0.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "bwinton@latte.ca",
+  "license": "MPL-2"
+}

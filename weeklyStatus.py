@@ -2,6 +2,7 @@
 # coding=UTF-8
 
 import appscript
+import datetime
 import re
 import subprocess
 import sys
@@ -16,11 +17,17 @@ except:
         def insert(self, edit, region, data):
             sys.stdout.write(data)
 
+# Coordination!
+coordination = [
+    "Talk to Shorlander about search prototype ideas."
+]
+
 
 class WeeklyStatusCommand(sublime_plugin.TextCommand):
-    def __init__(self):
+    def __init__(self, showWeek):
         self.indent = 0
         self.insert = []
+        self.showWeek = showWeek
 
     def print_name(self, key, suffix=""):
         self.insert.append(self.indent * " " + "* ")
@@ -30,20 +37,28 @@ class WeeklyStatusCommand(sublime_plugin.TextCommand):
     def gather_todos(self, things, list, future=False):
         todos = things.lists.ID(list)().to_dos()
         rv = {}
+        days = 1
+        today = datetime.date.today()
+        if today.weekday() == 0:
+            days = 3
+        if self.showWeek:
+            days = 27
+        yesterday = datetime.datetime.combine(
+            today - datetime.timedelta(days=days),
+            datetime.time(0))
         for todo in todos:
             if todo.name() == "Update my status!":
-                if len(rv) > 0 and not future:
+                if not future and self.showWeek:
                     break
-                else:
-                    continue
+                continue
+            if not future and todo.completion_date() < yesterday:
+                break
             if self.mozTag in todo.tags():
                 area = ""
                 if todo.project():
                     area = todo.project.name()
                 elif todo.area():
                     area = todo.area.name()
-                elif "meeting" in todo.name().lower() or "talk to" in todo.name().lower():
-                    area = "Meetings"
                 if area == "":
                     area = "Work"
                 rv.setdefault(area, []).append(todo)
@@ -55,6 +70,8 @@ class WeeklyStatusCommand(sublime_plugin.TextCommand):
             self.indent += 2
             values.reverse()
         else:
+            self.print_name("Other:")
+            self.indent += 2
             values.sort(key=lambda v: v.name())
         # coallesce items that contain "bug", and start with the same prefix.
         names = []
@@ -79,8 +96,8 @@ class WeeklyStatusCommand(sublime_plugin.TextCommand):
 
         for name in names:
             self.print_name(name)
-        if area != "Work":
-            self.indent -= 2
+        self.indent -= 2
+        self.insert.append('\n')
 
     def run(self, edit):
         things = appscript.app("Things")
@@ -91,27 +108,33 @@ class WeeklyStatusCommand(sublime_plugin.TextCommand):
                 self.mozTag = tag
                 break
 
-        self.insert.append("-----------------\n\n");
+        self.insert.append("-----------------\n\n")
         areas = self.gather_todos(things, u"FocusLogbook")
         for area in sorted(areas.keys()):
             self.print_area(area, areas[area])
 
-        self.insert.append("\n-----------------\n\n");
+        self.insert.append("-----------------\n\n")
         areas = self.gather_todos(things, u"FocusToday", True)
         for area in sorted(areas.keys()):
             self.print_area(area, areas[area])
 
-        self.insert.append("\n-----------------\n");
+        self.insert.append("-----------------\n\n")
+        self.insert.extend(["* %s\n" % person for person in coordination])
+
+        self.insert.append("-----------------\n")
 
         self.insert = u"".join([x.decode("utf-8") for x in self.insert])
-        # self.insert = self.insert.replace(u"…", u"...").replace(u"”", u'"').replace(u"“", u'"')
+        # self.insert = self.insert.replace(u"…", u"...").replace(u"”", u'"')
+        #                          .replace(u"“", u'"')
         self.view.insert(edit, 0, "".join(self.insert))
 
 
 class HgPdiffCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        process = subprocess.Popen('cd ' + self.view.window().folders()[0] + ';/usr/local/bin/hg pdiff',
-                                    shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen('cd ' + self.view.window().folders()[0] +
+                                   ';/usr/local/bin/hg pdiff', shell=True,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
         out, err = process.communicate()
         if process.returncode == 0:
             self.view.insert(edit, 0, out)
@@ -121,6 +144,6 @@ class HgPdiffCommand(sublime_plugin.TextCommand):
             self.view.set_syntax_file(u'Packages/Text/Plain text.tmLanguage')
 
 if __name__ == "__main__":
-    cmd = WeeklyStatusCommand()
+    cmd = WeeklyStatusCommand(sys.argv[-1] != "-d")
     cmd.view = StdoutView()
     cmd.run(None)

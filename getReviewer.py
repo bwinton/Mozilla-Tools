@@ -50,6 +50,7 @@ def main(argv=None):
     print("Patch source: %s" % args[0])
 
   changedFiles = fileRe.findall(diff)
+  print("Changed files: " + str(changedFiles))
   changes = {}
   for changedFile in changedFiles:
     changes[changedFile] = []
